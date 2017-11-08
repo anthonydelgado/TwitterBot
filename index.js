@@ -6,8 +6,6 @@ const giphyApiKey = process.env.apiKey;
 let searchString = "";
 let giphyQueryUrl;
 
-const port = process.env.PORT;
-
 //Initialize twitter client
 const client = new Twitter({
   consumer_key: process.env.consumer_key,
@@ -35,7 +33,11 @@ client.stream('statuses/filter', {track: '@VannucciBot'}, (stream) => {
 //This function will query the Giphy API using the node http module and when it finds a match, posts that to twitter
 //using the gifUrlToPost function
 function queryGiphy(replyString,queryUrl) {
-	http.get(queryUrl, res => {
+	http.request({
+		host: queryUrl,
+		port: (process.env.PORT || 80),
+		method: 'GET'
+	}, res => {
 		res.setEncoding("utf8");
 		let body = '';
 		res.on("data", data => {
