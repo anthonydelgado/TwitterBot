@@ -2,7 +2,6 @@
 //Dependencies
 const Twitter = require('twitter');
 const http = require('http');
-const config = require('./config.js');
 let searchString = "";
 let giphyQueryUrl;
 
