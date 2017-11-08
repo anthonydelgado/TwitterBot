@@ -1,34 +1,69 @@
-const twitterBot = require('./twitterbot.js').checkTwitterForNewTweets;
-const express = require('express');
 
-const SocketServer = require('ws').Server;
-const path = require('path');
+//Dependencies
+const Twitter = require('twitter');
+const http = require('http');
+const config = require('./config.js');
+let searchString = "";
+let giphyQueryUrl;
 
-const PORT = process.env.PORT || 3000;
-const INDEX = path.join(__dirname, 'index.html');
 
-let twitterBotOutput;
-
-const server = express()
-  .use((req, res) => res.sendFile(INDEX) )
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
-
-const wss = new SocketServer({ server });
-
-wss.on('connection', (ws) => {
-  console.log('Client connected');
-  ws.on('close', () => console.log('Client disconnected'));
+//Initialize twitter client
+const client = new Twitter({
+  consumer_key: config.twitter.consumer_key,
+  consumer_secret: config.twitter.consumer_secret,
+  access_token_key: config.twitter.access_token_key,
+  access_token_secret: config.twitter.access_token_secret
 });
 
-console.log("Checking for new tweets");
-twitterBotOutput = setInterval(twitterBot,1000);
+process.on('unhandledRejection', (reason,promise) => {
+	console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+})
 
-setInterval(() => {
-  wss.clients.forEach((client) => {
-    client.send(new Date().toTimeString());
-    // client.send(JSON.stringify(twitterBotOutput));
-  });
-}, 1000);
+//This stream checks for statuses containing '@VannucciBot' references, strips out the relevant seach data and feeds
+//that search data to the queryGiphy function
+client.stream('statuses/filter', {track: '@VannucciBot'}, (stream) => {
+	stream.on('data', (tweet) => {
+		searchString  = 
+			tweet.text.substring(tweet.text.indexOf("@VannucciBot")+"@VannucciBot".length + 1,tweet.text.length);
+		giphyQueryUrl = "http://api.giphy.com/v1/gifs/search?q="+searchString+"&api_key="+config.giphy.apiKey+"&limit=5&rating=g";
+		if(queryGiphyAndTweet(giphyQueryUrl)) {
+			console.log("Tweet sent");
+		}
+	})
+})
 
+//This function will query the Giphy API using the node http module and when it finds a match, posts that to twitter
+//using the gifUrlToPost function
+function queryGiphyAndTweet(queryUrl) {
+	http.get(queryUrl, res => {
+		res.setEncoding("utf8");
+		let body = "";
+		res.on("data", data => {
+			body += data;
+		});
+		res.on("error", error => {
+			console.log("Error: " + error);
+		})
+		res.on("end", () => {
+			body = JSON.parse(body);
+			if(gifUrlToPost(body.data[0].url)) {
+				return true;
+			}
 
+		});
 
+	});
+
+}
+
+//This simply posts the url of the gif passed to it
+function gifUrlToPost(url) {
+	client.post('statuses/update', {status: url})
+		.then(tweet => {
+	    	return true;
+		})
+	  	.catch(error => {
+	    	throw error;
+		});
+
+}
