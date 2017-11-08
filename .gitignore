@@ -1,4 +1,6 @@
 config.js
 node_modules
 todolist.md
-DS_Store
+npm-debug.log
+.DS_Store
+/*.env
