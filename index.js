@@ -33,7 +33,10 @@ client.stream('statuses/filter', {track: '@VannucciBot'}, (stream) => {
 //This function will query the Giphy API using the node http module and when it finds a match, posts that to twitter
 //using the gifUrlToPost function
 function queryGiphy(replyString,queryUrl) {
-	http.get(queryUrl, res => {
+	http.get({
+			hostname: queryUrl,
+			port: $PORT
+		}, res => {
 		res.setEncoding("utf8");
 		let body = '';
 		res.on("data", data => {
