@@ -7,7 +7,6 @@ const giphyApiKey = (process.env.apiKey || config.giphy.apiKey);
 let searchString = "";
 let giphyQueryUrl;
 
-
 //Initialize twitter client
 const client = new Twitter({
   consumer_key: process.env.consumer_key || config.twitter.consumer_key,
@@ -27,39 +26,40 @@ client.stream('statuses/filter', {track: '@VannucciBot'}, (stream) => {
 		searchString  = 
 			tweet.text.substring(tweet.text.indexOf("@VannucciBot")+"@VannucciBot".length + 1,tweet.text.length);
 		giphyQueryUrl = "http://api.giphy.com/v1/gifs/search?q="+searchString+"&api_key="+ giphyApiKey +"&limit=5&rating=g";
-		if(queryGiphyAndTweet(giphyQueryUrl)) {
-			console.log("Tweet sent");
-		}
+		let replyString = '@' + tweet.user.screen_name + ' ';
+		let giphyUrl = queryGiphy(replyString,giphyQueryUrl);
 	})
 })
 
 //This function will query the Giphy API using the node http module and when it finds a match, posts that to twitter
 //using the gifUrlToPost function
-function queryGiphyAndTweet(queryUrl) {
+function queryGiphy(replyString,queryUrl) {
 	http.get(queryUrl, res => {
 		res.setEncoding("utf8");
-		let body = "";
+		let body = '';
 		res.on("data", data => {
 			body += data;
+		});
+		res.on("end", () => {
+			body = JSON.parse(body);
+			if(postToTwitter(replyString + body.data[0].url)) {
+				return true;
+			} else {
+				return false;
+			}
+
 		});
 		res.on("error", error => {
 			console.log("Error: " + error);
 		})
-		res.on("end", () => {
-			body = JSON.parse(body);
-			if(gifUrlToPost(body.data[0].url)) {
-				return true;
-			}
-
-		});
 
 	});
 
 }
 
 //This simply posts the url of the gif passed to it
-function gifUrlToPost(url) {
-	client.post('statuses/update', {status: url})
+function postToTwitter(body) {
+	client.post('statuses/update', {status: body})
 		.then(tweet => {
 	    	return true;
 		})
