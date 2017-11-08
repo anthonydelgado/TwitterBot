@@ -9,10 +9,10 @@ let giphyQueryUrl;
 
 //Initialize twitter client
 const client = new Twitter({
-  consumer_key: config.twitter.consumer_key,
-  consumer_secret: config.twitter.consumer_secret,
-  access_token_key: config.twitter.access_token_key,
-  access_token_secret: config.twitter.access_token_secret
+  consumer_key: process.env.consumer_key,
+  consumer_secret: process.env.consumer_secret,
+  access_token_key: process.env.access_token_key,
+  access_token_secret: process.env.access_token_secret
 });
 
 process.on('unhandledRejection', (reason,promise) => {
@@ -25,7 +25,7 @@ client.stream('statuses/filter', {track: '@VannucciBot'}, (stream) => {
 	stream.on('data', (tweet) => {
 		searchString  = 
 			tweet.text.substring(tweet.text.indexOf("@VannucciBot")+"@VannucciBot".length + 1,tweet.text.length);
-		giphyQueryUrl = "http://api.giphy.com/v1/gifs/search?q="+searchString+"&api_key="+config.giphy.apiKey+"&limit=5&rating=g";
+		giphyQueryUrl = "http://api.giphy.com/v1/gifs/search?q="+searchString+"&api_key="+process.env.apiKey+"&limit=5&rating=g";
 		if(queryGiphyAndTweet(giphyQueryUrl)) {
 			console.log("Tweet sent");
 		}
