@@ -3,18 +3,18 @@
 const Twitter = require('twitter');
 const http = require('http');
 const port = (process.env.PORT || 3000);
-const config = require('./config.js');
-const giphyApiKey = (process.env.apiKey || config.giphy.apiKey);
+// const config = require('./config.js');
+const giphyApiKey = (process.env.apiKey /*|| config.giphy.apiKey*/);
 let searchString = "";
 let giphyQueryUrl;
 
 
 //Initialize twitter client
 const client = new Twitter({
-  consumer_key: (process.env.consumer_key || config.twitter.consumer_key),
-  consumer_secret: (process.env.consumer_secret || config.twitter.consumer_secret),
-  access_token_key: (process.env.access_token_key || config.twitter.access_token_key),
-  access_token_secret: (process.env.access_token_secret || config.twitter.access_token_secret)
+  consumer_key: (process.env.consumer_key/* || config.twitter.consumer_key*/),
+  consumer_secret: (process.env.consumer_secret /*|| config.twitter.consumer_secret*/),
+  access_token_key: (process.env.access_token_key/* || config.twitter.access_token_key*/),
+  access_token_secret: (process.env.access_token_secret/* || config.twitter.access_token_secret*/)
 });
 
 process.on('unhandledRejection', (reason,promise) => {
