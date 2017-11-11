@@ -2,10 +2,12 @@
 //Dependencies
 const Twitter = require('twitter');
 const http = require('http');
+const port = (process.env.PORT || 3000);
 const config = require('./config.js');
 const giphyApiKey = (process.env.apiKey || config.giphy.apiKey);
 let searchString = "";
 let giphyQueryUrl;
+
 
 //Initialize twitter client
 const client = new Twitter({
